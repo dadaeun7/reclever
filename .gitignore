@@ -9,6 +9,11 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+/ai/venv
+/front/%USERPROFILE%
+/backend/src/main/resources/*.json
+/analysis/lib/
+/analysis/venv/
 
 # testing
 /coverage
@@ -31,7 +36,7 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-.env*
+# .env*
 
 # vercel
 .vercel
@@ -39,3 +44,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.env
+
+/analysis/datas
+/analysis/app/extract
+/analysis/Dockerfile
+Dockerfile
+/front/Dockerfile.env

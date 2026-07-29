@@ -1,0 +1,43 @@
+name: recycling
+services:
+  rc-backend:
+    container_name: rc-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8083:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - SPRING_SECRET_KEY=${SPRING_SECRET_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.recycling-java.entrypoints=web"
+      - "traefik.http.routers.recycling-java.rule=Host(`localhost`) && (PathPrefix(`/reclever/auth`)"
+      - "traefik.http.routers.recycling-java.priority=100"
+      - "traefik.http.services.recycling-java.loadbalancer.server.port=8080"
+    networks:
+      - traefik-public
+
+  python:
+    container_name: python
+    build:
+      context: ./analysis
+      dockerfile: Dockerfile.dev
+    labels:
+      - "traefik.enable=false" # 자바 내부 통신용이므로 외부 노출 차단
+    networks:
+      - traefik-public
+    ports:
+      - "8000:8000"
+    environment:
+      - NVD_API_KEY=${NVD_API_KEY}
+    volumes:
+      - ./analysis:/app
