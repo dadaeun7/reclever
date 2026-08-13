@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.recycling.grpc";
+
+service SubmitPythonAnalyst {
+    rpc ClassifyProduct (ProductRequest) returns (ProductResponse);
+}
+
+message ProductRequest {
+    string productName = 1;
+}
+
+message ProductResponse {
+    repeated string material = 1;
+    string description = 2;
+}
