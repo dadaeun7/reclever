@@ -6,9 +6,8 @@
 Write-Host "Starting Java dependencies install..." -ForegroundColor Cyan
 Push-Location .\backend
   ./gradlew clean build -x test
-  ./gradlew bootJar
 Pop-Location
-  docker compose -f .\compose.local.yaml build --no-cache rc-backend
+  docker compose -f .\reclever-compose.yaml build --no-cache rc-backend
 
 # ====================================================================
 # Write-Host "Starting Python dependencies install..." -ForegroundColor Cyan

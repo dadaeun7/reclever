@@ -5,6 +5,26 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("reclever_access_token")?.value;
   const { pathname } = request.nextUrl;
 
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(process.env.JWT_KEY);
+      const { payload } = await jwtVerify(token, secret);
+
+      if (payload.sub) {
+        const requestHeaders = new Headers(request.headers);
+        requestHeaders.set("x-user-email", payload.sub as string);
+
+        return NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        });
+      }
+    } catch (error) {
+      console.log("JWT Verity error:", error);
+    }
+  }
+
   if (token && pathname === "/login") {
     return NextResponse.redirect(new URL("/", request.url));
   }

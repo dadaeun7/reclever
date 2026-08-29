@@ -29,7 +29,7 @@ public class GmailProcessingService {
     private final ProcessedEmailRepository processedEmailRepository;
     private final UsersRepository usersRepository;
     private final JobHistoryRepository jobHistoryRepository;
-    private final PythonService pythonService;
+    private final PythonGrpcService pythonGrpcService;
     private final RecycleInfoService recycleInfoService;
 
 
@@ -60,7 +60,7 @@ public class GmailProcessingService {
             if (productName == null || productName.isBlank()) {
                 return Mono.empty();
             }
-            return pythonService.submitPythonAnalyst(productName)
+            return pythonGrpcService.submitPythonAnalyst(productName)
                     .flatMap(repo -> recycleInfoService.saveUserInfo(productName, dto.orderTime(), repo.materials(), repo.description(), userId, false))
                     .flatMap(savedRecycleInfo -> {
                         ProcessedEmail newEmail = new ProcessedEmail();

@@ -1,2 +1,1 @@
-export const BACK_BASE = "https://api-rc.daeun-tech.site";
-export const backend = "http://rc-backend:8080";
+export const BACK_BASE = process.env.NEXT_PUBLIC_BACK_BASE;

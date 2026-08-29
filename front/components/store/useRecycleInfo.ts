@@ -3,6 +3,7 @@
 import { create } from "zustand";
 
 export interface RecycleInfo {
+  id: number;
   productName: string;
   materilas: string[];
   description: string;

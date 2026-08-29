@@ -2,11 +2,11 @@
 import Image from "next/image";
 
 export default function CstLoading({
-  imageName,
+  imageName = "",
   description,
   customMinH = "85vh",
 }: {
-  readonly imageName: string;
+  readonly imageName?: string;
   readonly description: string;
   readonly customMinH?: string;
 }) {

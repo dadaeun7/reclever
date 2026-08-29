@@ -5,12 +5,15 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.recycling.dto.RecycleInfoResponse;
+import com.recycling.dto.UpdateRecycleInfoReq;
 import com.recycling.global.annotaion.LoginUser;
 import com.recycling.service.RecycleInfoService;
 
@@ -39,4 +42,15 @@ public class RecycleInfoController {
     public Mono<RecycleInfoResponse> submitProductName(@LoginUser String email, @RequestParam("productName")String productName){
         return recycleInfoService.getOneRecycleInfo(email, productName);
     }
+
+    @PostMapping("/get/recommand")
+    public Flux<RecycleInfoResponse> getRecommand(@LoginUser String email, @RequestParam("productName") String productName){
+        return recycleInfoService.getRecommandRecycleInfo(email, productName);
+    }
+
+    @PostMapping("/update/recycle")
+    public Mono<ResponseEntity<Void>> updateRecycle(@RequestParam("id") Long id, @RequestBody UpdateRecycleInfoReq req){
+        return recycleInfoService.updateRecycleInfo(id, req.material(), req.description());
+    }
+
 }

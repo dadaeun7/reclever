@@ -1,7 +1,7 @@
 import DaySelect from "@/components/DaySelect";
-import { BACK_BASE } from "../constants/Default";
 import { headers } from "next/headers";
 import { RecycleInfo } from "@/components/store/useRecycleInfo";
+import { BACK_BASE } from "../constants/Default";
 
 export default function DaysPage() {
   const getRecycleInfo = async (

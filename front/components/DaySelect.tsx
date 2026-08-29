@@ -14,17 +14,63 @@ import { RecycleInfo } from "./store/useRecycleInfo";
 import { formatDateToYYYYMMDD, getLatestDateObj } from "./Utils";
 import CustomLoading from "./CustomLoading";
 import CustomAlert from "./CustomAlert";
+import RecycleInfoList from "./RecycleInfoList";
+import { styles } from "./css/DaySelectStyle";
+import { userInfo } from "./store/userInfo";
 
-const CATEGORIES = [
-  { id: "all", label: "전체", icon: "/all.png" },
-  { id: "paper", label: "종이", icon: "/paper.png" },
-  { id: "can", label: "캔", icon: "/can.png" },
-  { id: "glass", label: "유리", icon: "/glass.png" },
-  { id: "large", label: "폐기물", icon: "/etc.png" },
-  { id: "plastic", label: "플라스틱", icon: "/plastic.png" },
-  { id: "general", label: "일반", icon: "/normal.png" },
-  { id: "vinyl", label: "비닐", icon: "/vinyl.png" },
-  { id: "styrofoam", label: "스티로폼", icon: "/styrofoam.png" },
+export const CATEGORIES = [
+  { id: "all", label: "전체", icon: "/all.png", keywords: ["all", "전체"] },
+  {
+    id: "paper",
+    label: "종이",
+    icon: "/paper.png",
+    keywords: ["paper", "종이", "종이팩"],
+  },
+  { id: "can", label: "캔", icon: "/can.png", keywords: ["can", "캔", "고철"] },
+  {
+    id: "glass",
+    label: "유리",
+    icon: "/glass.png",
+    keywords: ["glass", "유리", "유리병"],
+  },
+  {
+    id: "large",
+    label: "폐기물",
+    icon: "/etc.png",
+    keywords: ["large", "etc", "폐기물", "대형"],
+  },
+  {
+    id: "plastic",
+    label: "플라스틱",
+    icon: "/plastic.png",
+    keywords: [
+      "plastic",
+      "플라스틱",
+      "pet",
+      "페트",
+      "페트병",
+      "투명페트",
+      "투명 페트",
+    ], // 👈 페트류 키워드 추가
+  },
+  {
+    id: "general",
+    label: "일반",
+    icon: "/normal.png",
+    keywords: ["general", "normal", "일반", "종량제"],
+  },
+  {
+    id: "vinyl",
+    label: "비닐",
+    icon: "/vinyl.png",
+    keywords: ["vinyl", "비닐"],
+  },
+  {
+    id: "styrofoam",
+    label: "스티로폼",
+    icon: "/styrofoam.png",
+    keywords: ["styrofoam", "스티로폼"],
+  },
 ];
 
 export default function DynamicWeeklyDashboard({
@@ -54,7 +100,12 @@ export default function DynamicWeeklyDashboard({
     },
   });
 
+  const { email } = userInfo();
+  const [isLoadingRecommand, setIsLoadingRecommand] = useState<boolean>(false);
+
+  const [recommandInfo, setRecommandInfo] = useState<RecycleInfo[]>([]);
   const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [isRecommandOpen, setIsRecommandOpen] = useState<boolean>(false);
 
   // 1. baseDate 변경 시 주간 달력 7일(일~토) 생성 및 기본 선택 날짜 지정
   useEffect(() => {
@@ -98,8 +149,9 @@ export default function DynamicWeeklyDashboard({
       }
     };
 
+    setIsRecommandOpen(false);
     fetchWeeklyData();
-  }, [weeklyDays, getRecycleInfo]);
+  }, [weeklyDays]);
 
   const shiftWeek = (direction: "prev" | "next") => {
     const offset = direction === "prev" ? -7 : 7;
@@ -159,7 +211,18 @@ export default function DynamicWeeklyDashboard({
   const [directProductName, setDirectProductName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDirectSubmit = async (e: React.FormEvent) => {
+  const popupHandler = (
+    message: string,
+    success: "success" | "error" | "info",
+  ) => {
+    setAlertConfig({
+      isOpen: true,
+      message: message,
+      type: success,
+      onClose: () => setAlertConfig((props) => ({ ...props, isOpen: false })),
+    });
+  };
+  const handleDirectSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (!directProductName.trim()) return;
 
@@ -176,12 +239,7 @@ export default function DynamicWeeklyDashboard({
 
       if (!response.ok) throw new Error("직접 등록 실패");
 
-      setAlertConfig({
-        isOpen: true,
-        message: "상품이 성공적으로 등록되었습니다.",
-        type: "success",
-        onClose: () => setAlertConfig((props) => ({ ...props, isOpen: false })),
-      });
+      popupHandler("상품이 성공적으로 등록되었습니다.", "success");
 
       setDirectProductName("");
       setIsDirectFormOpen(false);
@@ -196,14 +254,69 @@ export default function DynamicWeeklyDashboard({
       }
     } catch (error) {
       console.error(error);
-      setAlertConfig({
-        isOpen: true,
-        message: "등록 중 오류가 발생했습니다.",
-        type: "error",
-        onClose: () => setAlertConfig((props) => ({ ...props, isOpen: false })),
-      });
+      popupHandler("등록 중 오류가 발생했습니다.", "error");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const recommandRecycle = async (productName: string) => {
+    try {
+      setIsLoadingRecommand(true);
+      const result = await fetch(`/get/recommand?productName=${productName}`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!result.ok) throw new Error("추천 서비스 불러오기 실패");
+
+      const data = await result.json();
+      setRecommandInfo(data as RecycleInfo[]);
+    } catch (error) {
+      console.log("AI 재 추천 서비스 중 에러 발생: ", error);
+      popupHandler("추천 내용을 불러오던 중 오류가 발생했습니다.", "error");
+    } finally {
+      setIsLoadingRecommand(false);
+    }
+  };
+
+  const updateRecycleInfo = async (
+    recycleId: number,
+    material: string[],
+    description: string,
+  ) => {
+    try {
+      popupHandler("업데이트 중 ...", "info");
+      const submit = await fetch(`/update/recycle?id=${recycleId}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          material: material,
+          description: description,
+        }),
+      });
+
+      if (!submit.ok) throw new Error("재활용 정보 업데이트 중 에러");
+
+      popupHandler("업데이트 완료 되었습니다!", "success");
+      setRecycleList((prev) =>
+        prev.map((item) => {
+          if (item.id === recycleId) {
+            return {
+              ...item,
+              materilas: material,
+              description: description,
+            };
+          }
+          return item;
+        }),
+      );
+    } catch (error) {
+      console.error("재활용품 업데이트 중 에러 발생: ", error);
     }
   };
 
@@ -273,9 +386,7 @@ export default function DynamicWeeklyDashboard({
                     alt="Gmail"
                     style={styles.gmailIcon}
                   />
-                  <span style={styles.emailAddressText}>
-                    dadaeun7@gmail.com
-                  </span>
+                  <span style={styles.emailAddressText}>{email}</span>
                 </div>
                 <button
                   style={
@@ -325,7 +436,7 @@ export default function DynamicWeeklyDashboard({
               <div style={styles.inputWrapper}>
                 <input
                   type="text"
-                  placeholder="상품명을 입력해주세요 (예: 삼다수 500ml)"
+                  placeholder="상품명을 입력해주세요."
                   value={directProductName}
                   onChange={(e) => setDirectProductName(e.target.value)}
                   style={styles.directInput}
@@ -453,389 +564,20 @@ export default function DynamicWeeklyDashboard({
 
         {/* 수집 이력 리스트 */}
         <div style={styles.cardContainer}>
-          {filteredByDateList.length > 0 ? (
-            filteredByDateList.map((item, i) => {
-              const targetCategoryLabel =
-                CATEGORIES.find((c) => c.id === activeCategory)?.label || "";
-
-              const hasMatchingMaterial =
-                activeCategory === "all" ||
-                item.materilas?.some((mat) =>
-                  mat.includes(targetCategoryLabel),
-                );
-
-              if (!hasMatchingMaterial) return null;
-
-              const isOpen = expandedId === i;
-              const displayDate = formatDateToYYYYMMDD(item.orderDate);
-
-              return (
-                <div key={i} style={styles.logCard}>
-                  <div style={styles.cardMetaLine}>
-                    <span style={styles.metaSource}>
-                      {item.directInput ? "직접 등록" : "메일 연동"}
-                    </span>
-                    <span style={styles.metaDate}>{displayDate}</span>
-                  </div>
-
-                  <div style={styles.accordionItemWrapper}>
-                    <div
-                      style={styles.cardClickTitleRow}
-                      onClick={() => setExpandedId(isOpen ? -1 : i)}
-                    >
-                      <div style={styles.productTitleText}>
-                        {item.productName.replace(/(.+?)\s*\1+/g, "$1").trim()}
-                      </div>
-                      <span style={styles.toggleArrow}>
-                        {isOpen ? (
-                          <ChevronUp size={20} />
-                        ) : (
-                          <ChevronDown size={20} />
-                        )}
-                      </span>
-                    </div>
-
-                    {isOpen && (
-                      <div style={styles.expandedGuideBox}>
-                        <div style={styles.badgeLine}>
-                          {item.materilas?.map((material, matIdx) => (
-                            <span key={matIdx} style={styles.matBadge}>
-                              {material}
-                            </span>
-                          ))}
-                        </div>
-                        <p style={styles.guideParagraph}>{item.description}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })
-          ) : (
-            <div style={styles.emptyNotification}>
-              선택하신 날짜에 완제품 수집 내역이 없습니다.
-            </div>
-          )}
+          <RecycleInfoList
+            filteredByDateList={filteredByDateList}
+            activeCategory={activeCategory}
+            expandedId={expandedId}
+            setExpandedId={setExpandedId}
+            recommandRecycle={recommandRecycle}
+            recommandInfo={recommandInfo}
+            isLoadingRecommand={isLoadingRecommand}
+            isRecommandOpen={isRecommandOpen}
+            setIsRecommandOpen={setIsRecommandOpen}
+            updateRecycleInfo={updateRecycleInfo}
+          />
         </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  appContainer: {
-    width: "100%",
-    height: "90vh",
-    backgroundColor: "#FFFFFF",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "visible",
-    position: "relative",
-    margin: "0 auto",
-    paddingBottom: "100px",
-    boxSizing: "border-box",
-  },
-  syncCardGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  emailSyncCard: {
-    backgroundColor: "#F5F5F7",
-    borderRadius: "14px",
-    marginInline: "16px",
-    padding: "13px 20px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "5px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-  },
-  emailInfoLine: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "10px",
-    borderBottom: "1px solid #ececec",
-    paddingBottom: "5px",
-  },
-  gmailIcon: { width: "18px", height: "18px", objectFit: "contain" },
-  emailAddressText: {
-    marginLeft: "10px",
-    fontSize: "14px",
-    fontWeight: "500",
-    color: "#3A3A3C",
-  },
-  syncMetaBlock: { display: "flex", flexDirection: "column", gap: "2px" },
-  syncLabel: { fontSize: "12.8px", fontWeight: "500", color: "#86868B" },
-  syncDate: { fontSize: "15px", fontWeight: "600", color: "#1D1D1F" },
-  syncFetchBtn: {
-    border: "none",
-    backgroundColor: "#2C2C2E",
-    borderRadius: "7px",
-    padding: "6px 11px",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    cursor: "pointer",
-  },
-  syncUnFetchBtn: {
-    border: "none",
-    backgroundColor: "#838383",
-    borderRadius: "7px",
-    padding: "6px 11px",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-  },
-  syncFetchText: { fontSize: "12px", fontWeight: "600", color: "#FFFFFF" },
-  menuCardTitle: { fontSize: "12px", color: "#FFFFFF" },
-
-  /* 직접 입력 카드 전용 스타일 */
-  directInputCard: {
-    backgroundColor: "#F5F5F7",
-    borderRadius: "14px",
-    marginInline: "16px",
-    padding: "13px 20px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-    transition: "all 0.2s ease",
-  },
-  directInputHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    cursor: "pointer",
-  },
-  directHeaderLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  },
-  directHeaderTitle: {
-    fontSize: "13px",
-    fontWeight: "600",
-    color: "#3A3A3C",
-  },
-  directForm: {
-    marginTop: "12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  inputWrapper: {
-    display: "flex",
-    gap: "8px",
-    alignItems: "center",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  directInput: {
-    flex: 1,
-    minWidth: 0,
-    boxSizing: "border-box",
-    border: "1px solid #E5E5EA",
-    borderRadius: "8px",
-    padding: "7px 12px",
-    fontSize: "13px",
-    outline: "none",
-    backgroundColor: "#FFFFFF",
-    color: "#1D1D1F",
-  },
-  directSubmitBtn: {
-    flexShrink: 0,
-    height: "30px",
-    width: "36px",
-    border: "none",
-    backgroundColor: "#2C2C2E",
-    borderRadius: "8px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    transition: "opacity 0.2s ease",
-  },
-  directFormSubText: {
-    fontSize: "12px",
-    color: "#86868B",
-    marginLeft: "2px",
-  },
-
-  weekBlock: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    margin: "24px 0 12px 0",
-    padding: "0 16px",
-  },
-  calendarMonthTitle: {
-    fontSize: "18px",
-    fontWeight: "700",
-    color: "#1D1D1F",
-    letterSpacing: "-0.3px",
-  },
-  weeklySliderWrapper: {
-    position: "relative",
-    width: "100%",
-    padding: "0 16px",
-    boxSizing: "border-box",
-    marginBottom: "24px",
-  },
-  weeklyDaysLine: {
-    display: "flex",
-    justifyContent: "space-between",
-    gap: "8px",
-    width: "100%",
-  },
-  dayCard: {
-    flex: 1,
-    padding: "9px 0",
-    borderRadius: "12px",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    transition: "all 0.2s cubic-bezier(0.25, 1, 0.5, 1)",
-    minWidth: 0,
-  },
-  cardDayLabel: {
-    fontSize: "12px",
-    fontWeight: "600",
-    marginBottom: "6px",
-    letterSpacing: "-0.1px",
-  },
-  cardDayNum: { fontSize: "16px", fontWeight: "700" },
-  detailSection: {
-    flex: 1,
-    padding: "0 16px 24px 16px",
-    display: "flex",
-    flexDirection: "column",
-    overflowY: "auto",
-  },
-  categoryWrapper: {
-    position: "relative",
-    width: "100%",
-    borderTop: "1px solid #E5E5EA",
-    boxSizing: "border-box",
-  },
-  materialScrollContainer: {
-    display: "flex",
-    gap: "16px",
-    overflowX: "auto",
-    backgroundColor: "#FFFFFF",
-    padding: "16px 0",
-    width: "100%",
-    boxSizing: "border-box",
-    WebkitOverflowScrolling: "touch",
-  },
-  iconTabActive: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    cursor: "pointer",
-    borderBottom: "2px solid #1D1D1F",
-    paddingBottom: "8px",
-    minWidth: "60px",
-    flexShrink: 0,
-  },
-  iconTab: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    cursor: "pointer",
-    borderBottom: "2px solid transparent",
-    paddingBottom: "8px",
-    minWidth: "60px",
-    flexShrink: 0,
-  },
-  iconImg: {
-    width: "24px",
-    height: "24px",
-    objectFit: "contain",
-    marginBottom: "6px",
-  },
-  iconTxt: { fontSize: "12px", fontWeight: "600", letterSpacing: "-0.2px" },
-  cardContainer: {
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    boxSizing: "border-box",
-    paddingTop: "8px",
-  },
-  logCard: {
-    width: "100%",
-    boxSizing: "border-box",
-    marginBottom: "16px",
-    backgroundColor: "rgb(253, 253, 253)",
-    padding: "13px 15px 0px 15px",
-    borderRadius: "15px",
-    border: "1px solid #dfdfdf",
-  },
-  cardMetaLine: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    borderBottom: "1px solid #dfdfdf",
-    paddingBottom: "5px",
-    marginBottom: "2px",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  metaSource: { fontWeight: "600", fontSize: "12.5px", color: "#313133" },
-  metaDate: { fontSize: "13px", color: "#86868B" },
-  accordionItemWrapper: {
-    padding: "11px 0 18px 0",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  cardClickTitleRow: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    cursor: "pointer",
-    width: "100%",
-    boxSizing: "border-box",
-    gap: "16px",
-  },
-  productTitleText: {
-    fontWeight: "500",
-    fontSize: "14.5px",
-    color: "#181818",
-    lineHeight: "1.45",
-    flex: 1,
-    wordBreak: "break-all",
-    letterSpacing: "-0.2px",
-  },
-  toggleArrow: { display: "flex", alignItems: "center", color: "#86868B" },
-  expandedGuideBox: { marginTop: "12px", width: "100%" },
-  badgeLine: { display: "flex", gap: "6px", marginBottom: "12px" },
-  matBadge: {
-    fontSize: "12px",
-    border: "1px solid #ececf1",
-    borderRadius: "8px",
-    padding: "3px 10px",
-    color: "#48484A",
-    backgroundColor: "#F5F5F7",
-    fontWeight: "600",
-    letterSpacing: "-0.1px",
-  },
-  guideParagraph: {
-    fontSize: "14px",
-    color: "#3A3A3C",
-    lineHeight: "1.6",
-    backgroundColor: "#F5F5F7",
-    padding: "14px",
-    borderRadius: "12px",
-    margin: 0,
-    width: "100%",
-    boxSizing: "border-box",
-    wordBreak: "keep-all",
-    letterSpacing: "-0.1px",
-  },
-  emptyNotification: {
-    textAlign: "center",
-    color: "#86868B",
-    fontSize: "14px",
-    paddingTop: "40px",
-    fontWeight: "500",
-  },
-};

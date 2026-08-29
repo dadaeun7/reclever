@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { ChevronRight, Download, FileUp } from "lucide-react";
+import React from "react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { BACK_BASE } from "@/app/constants/Default";
 
 const guidList = [
   ["네이버 → gmail에 연동하기", "/settings/naver"],

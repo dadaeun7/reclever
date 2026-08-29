@@ -51,12 +51,11 @@ next-env.d.ts
 
 /analysis/lib/
 /analysis/venv/
-/analysis/app/chroma_db_data/
 /analysis/datas
 /analysis/app/extract
 /analysis/Dockerfile
 /analysis/app/__pycache__
-Dockerfile
+Dockerfile*
 /front/Dockerfile.env
 /front/.next
 /front/node_modules

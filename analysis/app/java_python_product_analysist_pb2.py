@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#java_python_product_analysist.proto\"%\n\x0eProductRequest\x12\x13\n\x0bproductName\x18\x01 \x01(\t\"8\n\x0fProductResponse\x12\x10\n\x08material\x18\x01 \x03(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t2K\n\x13SubmitPythonAnalyst\x12\x34\n\x0f\x43lassifyProduct\x12\x0f.ProductRequest\x1a\x10.ProductResponseB\x16\n\x12\x63om.recycling.grpcP\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n#java_python_product_analysist.proto\"%\n\x0eProductRequest\x12\x13\n\x0bproductName\x18\x01 \x01(\t\"8\n\x0fProductResponse\x12\x10\n\x08material\x18\x01 \x03(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\"9\n\x13ProductListResponse\x12\"\n\x08products\x18\x01 \x03(\x0b\x32\x10.ProductResponse2\x82\x01\n\x13SubmitPythonAnalyst\x12\x34\n\x0f\x43lassifyProduct\x12\x0f.ProductRequest\x1a\x10.ProductResponse\x12\x35\n\x0cListProducts\x12\x0f.ProductRequest\x1a\x14.ProductListResponseB\x16\n\x12\x63om.recycling.grpcP\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,6 +36,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_PRODUCTREQUEST']._serialized_end=76
   _globals['_PRODUCTRESPONSE']._serialized_start=78
   _globals['_PRODUCTRESPONSE']._serialized_end=134
-  _globals['_SUBMITPYTHONANALYST']._serialized_start=136
-  _globals['_SUBMITPYTHONANALYST']._serialized_end=211
+  _globals['_PRODUCTLISTRESPONSE']._serialized_start=136
+  _globals['_PRODUCTLISTRESPONSE']._serialized_end=193
+  _globals['_SUBMITPYTHONANALYST']._serialized_start=196
+  _globals['_SUBMITPYTHONANALYST']._serialized_end=326
 # @@protoc_insertion_point(module_scope)

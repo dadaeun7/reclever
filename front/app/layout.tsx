@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { AuthProvider } from "@/context/AuthContext";
+import UserInitializer from "@/components/UserInitializer";
 
 export const metadata: Metadata = {
   title: "reclever",
@@ -19,6 +20,9 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const isLoggedIn = !!cookieStore.get("reclever_access_token")?.value;
 
+  const headerList = await headers();
+  const userEmail = headerList.get("x-user-email") || "";
+
   return (
     <html lang="ko">
       <head>
@@ -29,7 +33,7 @@ export default async function RootLayout({
       </head>
       <body>
         <AuthProvider isLoggedIn={isLoggedIn}>
-          {/* body 안쪽에 div를 배치하여 구조적 결함을 해결합니다 */}
+          <UserInitializer email={userEmail} />
           <div style={styles.appContainer}>
             <Header />
             {children}

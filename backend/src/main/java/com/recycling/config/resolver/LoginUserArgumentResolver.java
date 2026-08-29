@@ -8,7 +8,6 @@ import org.springframework.web.server.ServerWebExchange;
 
 import com.recycling.config.JwtConfig;
 import com.recycling.global.annotaion.LoginUser;
-import com.recycling.utils.AesUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -39,6 +39,43 @@
 
 ---
 
+## 📍 v2.0 주요 업데이트 내용
+
+### 1️⃣ Main Page Spline 3D 디자인 적용
+
+- 메인 페이지에 Spline 3D 인터랙티브 그래픽 요소 도입.
+
+### 2️⃣ Microservice 통신 gRPC 전환 (`Java Client` ↔ `Python Server`)
+
+- 기존 FastAPI(HTTP REST) 구조에서 **gRPC 프로토콜**로 전환.
+- Java(Spring Boot)는 gRPC Client, Python은 gRPC Server로 작동하여 내부 통신 오버헤드 최소화.
+- 단건 응답 및 상위 3건 재추천 응답 구조를 스키마로 통합 정의.
+
+### 3️⃣ AI 상위 3건 재추천 파이프라인
+
+- 단건 자동 등록 방식에서 벗어나 검색 결과 후보 **Top-3**를 도출하여 사용자가 적합한 분리배출 가이드를 직접 확인 및 선택할 수 있는 UX 반영.
+
+### 4️⃣ Hybrid Search 매칭 알고리즘 (BM25 + Dense Retrieval + RRF)
+
+- **전처리 (`tokenize_korean`)**: Kiwi 형태소 분석기 + 정규식을 통한 용량/수량 노이즈 제거.
+- **다중 검색**: `BM25Okapi`(키워드 일치) + `ChromaDB & BAAI/bge-m3`(임베딩 시맨틱 유사도).
+- **RRF (Reciprocal Rank Fusion)**: 두 검색 모델의 순위를 결합하고 Vector 점수 가중치를 적용해 정확한 최적 매칭 항목 추출.
+
+### 5️⃣ 인증 및 상태 관리 구조 개선 (JWT & Middleware)
+
+- **Next.js Middleware 단 JWT 파싱 적용**: 요청 수신 시 Middleware에서 JWT 토큰의 Payload(`sub`)를 검증 및 디코딩하여 사용자 이메일을 안전하게 추출하도록 개선
+- **SSR-Client 간 상태 초기화 파이프라인 구축**:
+  - `RootLayout`(Server Component)에서 Custom Header를 조회
+  - 클라이언트 사이드 Initializer 컴포넌트를 통해 브라우저 전역 상태 관리 도구인 **Zustand Store**로 이메일 데이터 동기화
+- 클라이언트 단의 불필요한 추가 API 요청 없이, 페이지 로드 시점에 유저 세션 정보(Email)를 안전하고 즉각적으로 상태에 세팅
+
+---
+
+#### 📃 과거 버전
+
+<details>
+<summary><b>v1.0 알고리즘 및 아키텍처 한계 기록 (Click to expand)</b></summary>
+
 ## 1. 과거 비즈니스 로직 및 아키텍처 한계
 
 ### ▪️기존 파이프라인
@@ -106,3 +143,5 @@
 1. **데이터 볼륨 확장**: 키워드 포함 상품은 빠르고 정확하나, 데이터 볼륨 확장을 통해 전체 정확도 향상 필요
 2. **공백 없는 상품명 토큰화**: 어절 분리가 안 된 붙어있는 문자열 인입 시 매칭률 저하 $\rightarrow$ 전처리 토큰화 방식 수립 필요
 3. **임베딩 모델 재검증**: 키워드 Miss 시 임베딩 시맨틱 매칭 10개 중 8개가 오탐 발생 및 네트워크 비용 가중 $\rightarrow$ 타겟 임베딩 모델 비교 및 교체 검토
+
+</details>

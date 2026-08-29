@@ -39,12 +39,23 @@ class SubmitPythonAnalystStub:
                 request_serializer=java__python__product__analysist__pb2.ProductRequest.SerializeToString,
                 response_deserializer=java__python__product__analysist__pb2.ProductResponse.FromString,
                 _registered_method=True)
+        self.ListProducts = channel.unary_unary(
+                '/SubmitPythonAnalyst/ListProducts',
+                request_serializer=java__python__product__analysist__pb2.ProductRequest.SerializeToString,
+                response_deserializer=java__python__product__analysist__pb2.ProductListResponse.FromString,
+                _registered_method=True)
 
 
 class SubmitPythonAnalystServicer:
     """Missing associated documentation comment in .proto file."""
 
     def ClassifyProduct(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ListProducts(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +68,11 @@ def add_SubmitPythonAnalystServicer_to_server(servicer, server):
                     servicer.ClassifyProduct,
                     request_deserializer=java__python__product__analysist__pb2.ProductRequest.FromString,
                     response_serializer=java__python__product__analysist__pb2.ProductResponse.SerializeToString,
+            ),
+            'ListProducts': grpc.unary_unary_rpc_method_handler(
+                    servicer.ListProducts,
+                    request_deserializer=java__python__product__analysist__pb2.ProductRequest.FromString,
+                    response_serializer=java__python__product__analysist__pb2.ProductListResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class SubmitPythonAnalyst:
             '/SubmitPythonAnalyst/ClassifyProduct',
             java__python__product__analysist__pb2.ProductRequest.SerializeToString,
             java__python__product__analysist__pb2.ProductResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def ListProducts(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/SubmitPythonAnalyst/ListProducts',
+            java__python__product__analysist__pb2.ProductRequest.SerializeToString,
+            java__python__product__analysist__pb2.ProductListResponse.FromString,
             options,
             channel_credentials,
             insecure,

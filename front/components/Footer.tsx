@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { LayoutGrid, Home, Settings } from "lucide-react";
+import { LayoutGrid, Home, Settings, Calendar } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 
 export default function FixedBottomNav() {
@@ -27,7 +27,7 @@ export default function FixedBottomNav() {
             backgroundColor: isActive("/calendar") ? "#333333" : "transparent",
           }}
         >
-          <LayoutGrid
+          <Calendar
             size={22}
             color={isActive("/calendar") ? "#ffffff" : "#333333"}
           />

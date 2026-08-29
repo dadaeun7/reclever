@@ -76,7 +76,3 @@ protobuf {
         }
     }
 }
-
-// tasks.withType<Test> {
-// 	useJUnitPlatform()
-// }

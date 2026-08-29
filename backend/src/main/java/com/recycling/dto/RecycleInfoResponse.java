@@ -7,6 +7,7 @@ import lombok.Builder;
 
 @Builder
 public record RecycleInfoResponse(
+    Long id,
     String productName,
     List<String> materilas,
     String description,

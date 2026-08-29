@@ -23,3 +23,5 @@ docker-compose.yml
 .dockerignore
 
 # 모델 학습 파일 제외
+app/extract/
+datas/

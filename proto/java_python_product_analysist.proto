@@ -5,6 +5,7 @@ option java_package = "com.recycling.grpc";
 
 service SubmitPythonAnalyst {
     rpc ClassifyProduct (ProductRequest) returns (ProductResponse);
+    rpc ListProducts (ProductRequest) returns (ProductListResponse);
 }
 
 message ProductRequest {
@@ -14,4 +15,8 @@ message ProductRequest {
 message ProductResponse {
     repeated string material = 1;
     string description = 2;
+}
+
+message ProductListResponse {
+    repeated ProductResponse products = 1;
 }

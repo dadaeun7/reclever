@@ -1,47 +1,47 @@
 from grpc_reflection.v1alpha import reflection
 import concurrent.futures
 import grpc
-import chromadb
-from chromadb.utils import embedding_functions
+import re
+import csv
+from pathlib import Path
 
 import java_python_product_analysist_pb2_grpc
 import java_python_product_analysist_pb2
 
+from hybride_search_engine import hybrid_search_rrf, rating_hybrid_score
 
-CHROMA_DATA_PATH = "./chroma_db_data"
 
-ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="BAAI/bge-m3"
-)
+BASE = Path(__file__).resolve().parent
+FAILED_PRODUCT = BASE.parent / "datas" / "check_ai_review.csv"
 
-chroma_client = chromadb.PersistentClient(path=CHROMA_DATA_PATH)
-collection = chroma_client.get_collection(
-    name="recycling_db",
-    embedding_function=ef
-)
+def csv_add_product_name(product_name: str):
+    file_exists = FAILED_PRODUCT.exists()
+    with open(FAILED_PRODUCT, mode="a", encoding="utf-8", newline="") as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow("Product_Title")
+        writer.writerow(product_name)
 
 class SubmitPythonAnalystServicer(java_python_product_analysist_pb2_grpc.SubmitPythonAnalystServicer):
     def ClassifyProduct(self, request, context):
-        product_name = request.productName.strip()
+        product_name = re.sub(r'\(.*?\)|\[.*?\]', '',request.productName).strip()
 
         if not product_name:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("상품명을 작성해서 주세요")
+            context.set_details("상품명을 다시 확인해 주세요")
             return java_python_product_analysist_pb2.ProductResponse()
 
         try:
-            results = collection.query(
-                query_texts=[product_name],
-                n_results=1
-            )
 
-            if not results["metadatas"] or not results["metadatas"][0]:
+            search_result = hybrid_search_rrf(product_name)
+            top_metadata = search_result.get("metadata")
+
+            if not top_metadata:
+                csv_add_product_name(product_name)
                 return java_python_product_analysist_pb2.ProductResponse(
                     material=["매칭 정보 없음"],
                     description="매칭 정보 없음"
                 )
-
-            top_metadata= results["metadatas"][0][0]
 
             raw_material = top_metadata.get("material","")
             materials_list = [m.strip() for m in raw_material.split(",") if m.strip()]
@@ -56,6 +56,41 @@ class SubmitPythonAnalystServicer(java_python_product_analysist_pb2_grpc.SubmitP
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(f"ChromaDB Query Error: {str(e)}")
             return java_python_product_analysist_pb2.ProductResponse()
+
+    def ListProducts(self, request, context):
+        product_name = re.sub(r'\(.*?\)|\[.*?\]', '', request.productName).strip()
+
+        if not product_name:
+            context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
+            context.set_details("상품명을 다시 확인해 주세요.")
+            return java_python_product_analysist_pb2.ProductListResponse()
+
+        try:
+            recommand_results = rating_hybrid_score(product_name)
+
+            product_response = []
+
+            for item in recommand_results:
+                top_metadata = item.get("metadata", {})
+                raw_material = top_metadata.get("material","")
+                material_list = [m.strip() for m in raw_material.split(",") if m.strip()]
+                description_text = top_metadata.get("how_to_dispose", "")
+
+                product_response.append(
+                    java_python_product_analysist_pb2.ProductResponse(
+                        material=material_list,
+                        description=description_text
+                    )
+                )
+
+            return java_python_product_analysist_pb2.ProductListResponse(
+                products=product_response
+            )
+        except Exception as e:
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(f"ChromaDB Query Error: {str(e)}")
+            return java_python_product_analysist_pb2.ProductListResponse()
+
 
 def serve():
     server = grpc.server(concurrent.futures.ThreadPoolExecutor(max_workers=10))
