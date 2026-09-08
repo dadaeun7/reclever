@@ -52,7 +52,7 @@ next-env.d.ts
 /analysis/lib/
 /analysis/venv/
 /analysis/datas
-/analysis/app/extract
+/analysis/app/extract/
 /analysis/Dockerfile
 /analysis/app/__pycache__
 Dockerfile*

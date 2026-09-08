@@ -20,7 +20,6 @@ interface MonthData {
 
 interface DailySummary {
   totalCount: number;
-  totalPoint: number;
   categories: {
     plastic: number;
     glass: number;
@@ -67,7 +66,6 @@ export default function InfiniteScrollCalendar({
   const currentSummary: DailySummary = useMemo(() => {
     const summary: DailySummary = {
       totalCount: 0,
-      totalPoint: 0,
       categories: {
         plastic: 0,
         glass: 0,
@@ -100,14 +98,7 @@ export default function InfiniteScrollCalendar({
       });
     });
 
-    // 재질별 총 합산
-    const totalCatCount = Object.values(summary.categories).reduce(
-      (acc, cur) => acc + cur,
-      0,
-    );
-
     summary.totalCount = targetItems.length; // 수집된 아이템 개수
-    summary.totalPoint = totalCatCount; // 재질 포인트 합계 (필요 정책에 따라 변경 가능)
 
     return summary;
   }, [recycleList, selectedDate]);
@@ -305,12 +296,6 @@ export default function InfiniteScrollCalendar({
                 총{" "}
                 <strong style={styles.strongNum}>
                   {currentSummary.totalCount}
-                </strong>
-              </span>
-              <span style={styles.summaryPointText}>
-                point{" "}
-                <strong style={styles.strongNum}>
-                  {currentSummary.totalPoint}
                 </strong>
               </span>
             </div>

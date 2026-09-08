@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import CstLoading from "./CustomLoading";
 
 export default function Main() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
