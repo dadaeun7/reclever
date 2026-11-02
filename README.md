@@ -2,10 +2,6 @@
 
 > **Python + Spring Boot + Next.js** 기반의 AI 분리배출 추천 및 환경 서비스 리뉴얼 프로젝트
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-reclever.daeun--tech.site-4F46E5?style=for-the-badge&logo=googlechrome&logoColor=white)](https://reclever.daeun-tech.site)
-![AWS Lightsail](https://img.shields.io/badge/AWS_Lightsail-FF9900?style=for-the-badge&logo=amazonwebservices&logoColor=white)
-![Gabia](https://img.shields.io/badge/Gabia_Domain-0052CC?style=for-the-badge&logo=internetcomputer&logoColor=white)
-
 ---
 
 <p align="center">
